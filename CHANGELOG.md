@@ -11,5 +11,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Get functions sorted by most uncovered lines
 - Ability to preview via fzf
 
-[Unreleased]: https://***REMOVED***/supply-trackers/risky-func/compare/-/v0.0.1...HEAD
+[Unreleased]: https://***REMOVED***/supply-trackers/risky-func/compare/-/v0.0.1...main
 [0.0.1]: https://***REMOVED***/supply-trackers/risky-func/-/releases/v0.0.1
