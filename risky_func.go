@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"github.com/thoas/go-funk"
+	"github.com/urfave/cli/v2"
 	"go/ast"
 	"go/build"
 	"go/parser"
 	"go/token"
 	"golang.org/x/tools/cover"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -17,26 +19,81 @@ import (
 )
 
 func main() {
-	profiles, err := cover.ParseProfiles(os.Args[1])
-	if err != nil {
-		fmt.Println(err)
-		return
+	app := &cli.App{
+		Name: "risky-func",
+		Usage: "identify complex untested functions",
+		Flags: []cli.Flag {
+			&cli.Int64Flag{
+				Name: "line-filter",
+				Value: 0,
+				Usage: "functions with untested lines lower than this will be filtered out",
+			},
+			&cli.StringFlag{
+				Name: "file",
+				Aliases: []string{"f"},
+				Usage: "coverage file",
+				Required: true,
+			},
+		},
+		Action: func(c *cli.Context) error {
+			profiles, err := cover.ParseProfiles(c.String("file"))
+			if err != nil {
+				return err
+			}
+
+			funcInfos, total, covered, err := getFunctionInfos(profiles)
+			if err != nil {
+				return err
+			}
+
+			sort.Slice(funcInfos, func(i, j int) bool {
+				return funcInfos[i].uncoveredLines > funcInfos[j].uncoveredLines
+			})
+
+			f := funk.Filter(funcInfos, func(x *funcInfo) bool {
+				return x.uncoveredLines > c.Int64("line-filter")
+			})
+
+			printTable(covered, total, f.([]*funcInfo))
+			return nil
+		},
 	}
 
-	var total, covered int64
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
+func printTable(covered int64, total int64, f []*funcInfo) {
+	tc := float64(covered) / float64(total) * 100
+	var fStr [][]string
+	fStr = funk.Map(f, func(x *funcInfo) []string {
+		return []string{
+			trimString(x.fileName),
+			x.functionName,
+			strconv.FormatInt(x.uncoveredLines, 10),
+			fmt.Sprintf("%.1f", (float64(covered+x.uncoveredLines)/float64(total)*100)-tc)}
+	}).([][]string)
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"File", "Function", "Uncovered Lines", "Impact"})
+	table.AppendBulk(fStr)
+	table.Render()
+}
+
+func getFunctionInfos(profiles []*cover.Profile) ([]*funcInfo, int64, int64, error) {
+	var total, covered int64
 	var funcInfos []*funcInfo
 	for _, profile := range profiles {
 		fn := profile.FileName
 		file, err := findFile(fn)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return nil, 0, 0, err
 		}
 		funcs, err := findFuncs(file)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return nil, 0, 0, err
 		}
 		// Now match up functions and profile blocks.
 		for _, f := range funcs {
@@ -50,25 +107,7 @@ func main() {
 			covered += c
 		}
 	}
-
-	sort.Slice(funcInfos, func(i, j int) bool {
-		return funcInfos[i].uncoveredLines > funcInfos[j].uncoveredLines
-	})
-
-	f := funk.Filter(funcInfos, func(x *funcInfo) bool {
-		return x.uncoveredLines > 0
-	})
-
-	var fStr [][]string
-	fStr = funk.Map(f, func(x *funcInfo) []string {
-		return []string{trimString(x.fileName), x.functionName, strconv.FormatInt(x.uncoveredLines, 10)}
-	}).([][]string)
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"File", "Function", "Uncovered Lines"})
-	table.AppendBulk(fStr)
-	table.Render()
-	return
+	return funcInfos, total, covered, nil
 }
 
 func trimString(s string) string {
