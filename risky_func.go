@@ -10,28 +10,42 @@ import (
 	"go/parser"
 	"go/token"
 	"golang.org/x/tools/cover"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 func main() {
+	var trim bool
+
 	app := &cli.App{
-		Name: "risky-func",
+		Name:  "risky-func",
 		Usage: "identify complex untested functions",
-		Flags: []cli.Flag {
+		Flags: []cli.Flag{
 			&cli.Int64Flag{
-				Name: "line-filter",
+				Name:  "line-filter",
 				Value: 0,
 				Usage: "functions with untested lines lower than this will be filtered out",
 			},
+			&cli.BoolFlag{
+				Name:        "trim",
+				Aliases:     []string{"t"},
+				Value:       false,
+				Usage:       "trim file name",
+				Destination: &trim,
+			},
 			&cli.StringFlag{
-				Name: "file",
-				Aliases: []string{"f"},
-				Usage: "coverage file",
+				Name:  "format",
+				Value: "table",
+				Usage: "display format",
+			},
+			&cli.StringFlag{
+				Name:     "file",
+				Aliases:  []string{"f"},
+				Usage:    "coverage file",
 				Required: true,
 			},
 		},
@@ -52,9 +66,13 @@ func main() {
 
 			f := funk.Filter(funcInfos, func(x *funcInfo) bool {
 				return x.uncoveredLines > c.Int64("line-filter")
-			})
+			}).([]*funcInfo)
 
-			printTable(covered, total, f.([]*funcInfo))
+			if c.String("format") == "table" {
+				printTable(f, trim, covered, total)
+			} else {
+				printBat(f, trim, covered, total)
+			}
 			return nil
 		},
 	}
@@ -65,17 +83,45 @@ func main() {
 	}
 }
 
-func printTable(covered int64, total int64, f []*funcInfo) {
-	tc := float64(covered) / float64(total) * 100
+func getTrimmedFileName(x *funcInfo, trim bool) string {
+	fn := x.fileName
+
+	if trim {
+		fn = trimString(fn, 20)
+	}
+	return fn
+}
+
+func printBat(f []*funcInfo, trim bool, covered int64, total int64) {
 	var fStr [][]string
+	tc := float64(covered) / float64(total) * 100
 	fStr = funk.Map(f, func(x *funcInfo) []string {
+		fn := getTrimmedFileName(x, trim)
 		return []string{
-			trimString(x.fileName),
+			fn,
 			x.functionName,
+			strconv.Itoa(x.functionStartLine),
+			strconv.Itoa(x.functionEndLine),
 			strconv.FormatInt(x.uncoveredLines, 10),
 			fmt.Sprintf("%.1f", (float64(covered+x.uncoveredLines)/float64(total)*100)-tc)}
 	}).([][]string)
 
+	for _, v := range fStr {
+		fmt.Println(strings.Join(v, " "))
+	}
+}
+
+func printTable(f []*funcInfo, trim bool, covered int64, total int64) {
+	var fStr [][]string
+	tc := float64(covered) / float64(total) * 100
+	fStr = funk.Map(f, func(x *funcInfo) []string {
+		fn := getTrimmedFileName(x, trim)
+		return []string{
+			fn,
+			x.functionName,
+			strconv.FormatInt(x.uncoveredLines, 10),
+			fmt.Sprintf("%.1f", (float64(covered+x.uncoveredLines)/float64(total)*100)-tc)}
+	}).([][]string)
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"File", "Function", "Uncovered Lines", "Impact"})
 	table.AppendBulk(fStr)
@@ -99,9 +145,10 @@ func getFunctionInfos(profiles []*cover.Profile) ([]*funcInfo, int64, int64, err
 		for _, f := range funcs {
 			c, t := f.coverage(profile)
 			funcInfos = append(funcInfos,
-				&funcInfo{fileName: fn,
+				&funcInfo{fileName: file,
 					functionName:      f.name,
 					functionStartLine: f.startLine,
+					functionEndLine:   f.endLine,
 					uncoveredLines:    t - c})
 			total += t
 			covered += c
@@ -110,9 +157,9 @@ func getFunctionInfos(profiles []*cover.Profile) ([]*funcInfo, int64, int64, err
 	return funcInfos, total, covered, nil
 }
 
-func trimString(s string) string {
-	if len(s) > 20 {
-		return "..." + s[len(s) - 20:]
+func trimString(s string, i int) string {
+	if len(s) > i {
+		return "..." + s[len(s)-i:]
 	}
 	return s
 }
@@ -121,11 +168,8 @@ type funcInfo struct {
 	fileName          string
 	functionName      string
 	functionStartLine int
+	functionEndLine   int
 	uncoveredLines    int64
-}
-
-func (f *funcInfo) Print(w io.Writer) {
-	_, _ = fmt.Fprintf(w, "%s:%d:\t%s\t%d\n", f.fileName, f.functionStartLine, f.functionName, f.uncoveredLines)
 }
 
 // findFuncs parses the file and returns a slice of FuncExtent descriptors.
