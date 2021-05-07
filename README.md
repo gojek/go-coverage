@@ -18,19 +18,24 @@ go build
 
 Go to the folder where `coverage.out` is generated via `go test ./... -coverprofile=coverage.out`
 
-Then call `risky-func coverage.out`
-
+Run
+```shell
+./risky-func -f coverage.out
+```
 ## Example
 
 ```
-+-------------------------+-----------+-----------------+
-|          FILE           | FUNCTION  | UNCOVERED LINES |
-+-------------------------+-----------+-----------------+
-| ...y-func/risky_func.go | main      |              33 |
-| ...y-func/risky_func.go | coverage  |              12 |
-| ...y-func/risky_func.go | findFuncs |               7 |
-| ...y-func/risky_func.go | Visit     |               6 |
-| ...y-func/risky_func.go | findFile  |               5 |
-| ...y-func/risky_func.go | Print     |               1 |
-+-------------------------+-----------+-----------------+
++-------------------------+------------------+-----------------+--------+
+|          FILE           |     FUNCTION     | UNCOVERED LINES | IMPACT |
++-------------------------+------------------+-----------------+--------+
+| ...y-func/risky_func.go | main             |              28 |   42.4 |
+| ...y-func/risky_func.go | getFunctionInfos |               8 |   12.1 |
+| ...y-func/risky_func.go | findFuncs        |               7 |   10.6 |
+| ...y-func/risky_func.go | Visit            |               7 |   10.6 |
+| ...y-func/risky_func.go | printTable       |               5 |    7.6 |
+| ...y-func/risky_func.go | Print            |               5 |    7.6 |
+| ...y-func/risky_func.go | trimString       |               1 |    1.5 |
+| ...y-func/risky_func.go | coverage         |               1 |    1.5 |
+| ...y-func/risky_func.go | findFile         |               1 |    1.5 |
++-------------------------+------------------+-----------------+--------+
 ```
