@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -43,6 +44,11 @@ func main() {
 				Usage: "display format",
 			},
 			&cli.StringFlag{
+				Name:  "exclude",
+				Value: "",
+				Usage: "regex of the file to exclude",
+			},
+			&cli.StringFlag{
 				Name:     "file",
 				Aliases:  []string{"f"},
 				Usage:    "coverage file",
@@ -67,6 +73,19 @@ func main() {
 			f := funk.Filter(funcInfos, func(x *funcInfo) bool {
 				return x.uncoveredLines > c.Int64("line-filter")
 			}).([]*funcInfo)
+
+			exc := c.String("exclude")
+
+			if exc != "" {
+				r, regexErr := regexp.Compile(exc)
+				if regexErr != nil {
+					return regexErr
+				}
+
+				f = funk.Filter(f, func(x *funcInfo) bool {
+					return !r.Match([]byte(x.fileName))
+				}).([]*funcInfo)
+			}
 
 			if c.String("format") == "table" {
 				printTable(f, trim, covered, total)
