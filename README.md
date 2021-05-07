@@ -1,6 +1,10 @@
 # Risky Func
 
-Drive higher confidence in making changes by detecting large blocks of untested functionality.
+Drive higher confidence in making changes by detecting large blocks of untested functionality. 
+
+Functions here are treated as units of composition.
+
+Number of lines is treated as a proxy for complexity.
 
 ## Background
 
