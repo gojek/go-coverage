@@ -1,40 +1,114 @@
-# Risky Func
+<br />
+<p align="center"><h3 align="center">go-coverage</h3>
 
-Drive higher confidence in tests by detecting large blocks of untested functionality. 
+  <p align="center">
+    Increase code coverage of Go projects
+  </p>
+</p>
 
-## Background
+<!-- TABLE OF CONTENTS -->
+<details open="open">
+  <summary><h2 style="display: inline-block">Table of Contents</h2></summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+  </ol>
+</details>
 
-There are large code bases with low test coverages and there is low confidence to make changes in them. This low
-confidence stems from the fact that when a change is made there is no guarantee that it will be correct.
+<!-- ABOUT THE PROJECT -->
+## About The Project
 
-## Building
+The key challenge with large code bases with low test coverage is to prioritize which sections of code to test first.
 
-```
-go build
+The standard coverage tools tell about the code coverage percentage and what is covered and uncovered however it doesn't give an input on which functions to cover first and what will be the impact of covering them.
+
+This tool addresses the challenge by providing the sorted list of functions to cover and the impact associated with covering it.
+
+<!-- GETTING STARTED -->
+## Getting Started
+
+To get a local copy up and running follow these simple steps.
+
+### Prerequisites
+
+You'll need Go installed to use this tool. [Here](https://golang.org/doc/install) is the installation instructions for Go.
+
+### Installation
+
+Via go get
+```shell
+go get -u ***REMOVED***/supply-trackers/risky-func
 ```
 
 ## Usage
 
-Go to the folder where `coverage.out` is generated via `go test ./... -coverprofile=coverage.out`
+### Prerequisites
 
-Run
+Generate the coverage profile for your Go codebase, usually done via
 ```shell
-./risky-func -f coverage.out
+go test ./... -coverprofile=coverage.out
 ```
-## Example
 
+### Get lines uncovered greater than 10
+
+```shell
+risky-func -f coverage.out --line-filter 10
 ```
-+-------------------------+------------------+-----------------+--------+
-|          FILE           |     FUNCTION     | UNCOVERED LINES | IMPACT |
-+-------------------------+------------------+-----------------+--------+
-| ...y-func/risky_func.go | main             |              28 |   42.4 |
-| ...y-func/risky_func.go | getFunctionInfos |               8 |   12.1 |
-| ...y-func/risky_func.go | findFuncs        |               7 |   10.6 |
-| ...y-func/risky_func.go | Visit            |               7 |   10.6 |
-| ...y-func/risky_func.go | printTable       |               5 |    7.6 |
-| ...y-func/risky_func.go | Print            |               5 |    7.6 |
-| ...y-func/risky_func.go | trimString       |               1 |    1.5 |
-| ...y-func/risky_func.go | coverage         |               1 |    1.5 |
-| ...y-func/risky_func.go | findFile         |               1 |    1.5 |
-+-------------------------+------------------+-----------------+--------+
+
+### Get trimmed file names
+
+```shell
+risky-func -f coverage.out --line-filter 10 --trim
 ```
+
+```shell
++-------------------------+-------------------------------------+-----------------+--------+
+|          FILE           |              FUNCTION               | UNCOVERED LINES | IMPACT |
++-------------------------+-------------------------------------+-----------------+--------+
+| ...ice/config/config.go | RadiusForClosestDriverByServicetype |              26 |    1.9 |
+| ...ice/config/config.go | RadiusForServicetype                |              26 |    1.9 |
+| ...ice/config/config.go | AliceDriverLimit                    |              26 |    1.9 |
+| ...ice/config/config.go | ConsumerDriverLimitByServicetype    |              26 |    1.9 |
+| .../service/handlers.go | findDriver                          |              19 |    1.4 |
+| ...ice/extern/driver.go | driverAllocationStatusFromAPI       |              19 |    1.4 |
+| .../service/handlers.go | updateDriverVehicleTags             |              18 |    1.3 |
+| ...ice/config/config.go | ConsumerDriverLimit                 |              14 |    1.0 |
+| ...vice/service/cron.go | startCrons                          |              14 |    1.0 |
+| ...ice/config/config.go | RadiusForVehicleType                |              13 |    0.9 |
+| ...ice/config/config.go | matchVehicleType                    |              12 |    0.9 |
+| ...rvice/service/api.go | startServer                         |              11 |    0.8 |
++-------------------------+-------------------------------------+-----------------+--------+
+```
+
+### Exclude file name pattern
+
+```shell
+risky-func -f coverage.out --exclude ".*config.*" --line-filter 10 --trim
+```
+
+```shell
++-------------------------+-------------------------------+-----------------+--------+
+|          FILE           |           FUNCTION            | UNCOVERED LINES | IMPACT |
++-------------------------+-------------------------------+-----------------+--------+
+| .../service/handlers.go | findDriver                    |              19 |    1.4 |
+| ...ice/extern/driver.go | driverAllocationStatusFromAPI |              19 |    1.4 |
+| .../service/handlers.go | updateDriverVehicleTags       |              18 |    1.3 |
+| ...vice/service/cron.go | startCrons                    |              14 |    1.0 |
+| ...rvice/service/api.go | startServer                   |              11 |    0.8 |
++-------------------------+-------------------------------+-----------------+--------+
+```
+
+## Roadmap
+
+- [ ] Support generation of HTML
+- [ ] Integrate with gitlab
