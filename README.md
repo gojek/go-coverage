@@ -47,7 +47,7 @@ You'll need Go installed to use this tool. [Here](https://golang.org/doc/install
 
 Via go get
 ```shell
-go get -u ***REMOVED***/supply-trackers/risky-func
+go get -u ***REMOVED***/supply-trackers/go-coverage
 ```
 
 ## Usage
