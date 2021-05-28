@@ -62,13 +62,13 @@ go test ./... -coverprofile=coverage.out
 ### Get lines uncovered greater than 10
 
 ```shell
-risky-func -f coverage.out --line-filter 10
+go-coverage -f coverage.out --line-filter 10
 ```
 
 ### Get trimmed file names
 
 ```shell
-risky-func -f coverage.out --line-filter 10 --trim
+go-coverage -f coverage.out --line-filter 10 --trim
 ```
 
 ```shell
@@ -93,7 +93,7 @@ risky-func -f coverage.out --line-filter 10 --trim
 ### Exclude file name pattern
 
 ```shell
-risky-func -f coverage.out --exclude ".*config.*" --line-filter 10 --trim
+go-coverage -f coverage.out --exclude ".*config.*" --line-filter 10 --trim
 ```
 
 ```shell

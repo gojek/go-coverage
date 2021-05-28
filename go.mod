@@ -1,4 +1,4 @@
-module ***REMOVED***/supply-trackers/risky-func
+module ***REMOVED***/supply-trackers/go-coverage
 
 go 1.16
 
