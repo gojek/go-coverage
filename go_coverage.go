@@ -23,7 +23,7 @@ func main() {
 	var trim bool
 
 	app := &cli.App{
-		Name:  "risky-func",
+		Name:  "go-coverage",
 		Usage: "identify complex untested functions",
 		Flags: []cli.Flag{
 			&cli.Int64Flag{
