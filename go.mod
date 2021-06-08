@@ -1,4 +1,4 @@
-module ***REMOVED***/supply-trackers/go-coverage
+module github.com/gojekfarm/go-coverage
 
 go 1.16
 
