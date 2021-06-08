@@ -16,4 +16,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ability to preview via fzf
 
 [Unreleased]: https://github.com/gojekfarm/go-coverage/compare/v0.0.1...main
-[0.0.1]: https://github.com/gojekfarm/go-coverage/releases/v0.0.1
+[0.0.1]: https://github.com/gojekfarm/go-coverage/releases/tag/v0.0.1
