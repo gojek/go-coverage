@@ -47,7 +47,7 @@ You'll need Go installed to use this tool. [Here](https://golang.org/doc/install
 
 Via go get
 ```shell
-go get -u github.com/gojekfarm/go-coverage
+go get -u github.com/gojek/go-coverage
 ```
 
 ## Usage

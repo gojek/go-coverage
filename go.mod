@@ -1,4 +1,4 @@
-module github.com/gojekfarm/go-coverage
+module github.com/gojek/go-coverage
 
 go 1.16
 
