@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
@@ -100,6 +101,34 @@ func Test_calculateCoverage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := calculateCoverage(tt.args.covered, tt.args.total); got != tt.want {
 				t.Errorf("calculateCoverage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_findFile(t *testing.T) {
+	path, _ := os.Getwd()
+
+	type args struct {
+		file string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{"file from this package", args{file: "github.com/gojek/go-coverage/go_coverage.go"}, path + "/go_coverage.go", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := findFile(tt.args.file)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("findFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("findFile() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
