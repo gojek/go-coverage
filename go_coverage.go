@@ -109,19 +109,24 @@ func getTrimmedFileName(fn string, trim bool) string {
 	return fn
 }
 
+func fmtFuncInfo(x *funcInfo, tc float64, covered int64, total int64, trim bool) []string {
+	fn := getTrimmedFileName(x.fileName, trim)
+	return []string{
+		fn,
+		x.functionName,
+		strconv.Itoa(x.functionStartLine),
+		strconv.Itoa(x.functionEndLine),
+		strconv.FormatInt(x.uncoveredLines, 10),
+		fmt.Sprintf("%.1f", (float64(covered+x.uncoveredLines)/float64(total)*100)-tc)}
+}
+
 func printBat(f []*funcInfo, trim bool, covered int64, total int64) {
 	var fStr [][]string
 	tc := float64(covered) / float64(total) * 100
-	fStr = funk.Map(f, func(x *funcInfo) []string {
-		fn := getTrimmedFileName(x.fileName, trim)
-		return []string{
-			fn,
-			x.functionName,
-			strconv.Itoa(x.functionStartLine),
-			strconv.Itoa(x.functionEndLine),
-			strconv.FormatInt(x.uncoveredLines, 10),
-			fmt.Sprintf("%.1f", (float64(covered+x.uncoveredLines)/float64(total)*100)-tc)}
-	}).([][]string)
+
+	for _, fInfo := range f {
+		fStr = append(fStr, fmtFuncInfo(fInfo, tc, total, covered, trim))
+	}
 
 	for _, v := range fStr {
 		fmt.Println(strings.Join(v, " "))
