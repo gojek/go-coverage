@@ -109,23 +109,24 @@ func getTrimmedFileName(fn string, trim bool) string {
 	return fn
 }
 
-func fmtFuncInfo(x *funcInfo, tc float64, covered int64, total int64, trim bool) []string {
+func fmtFuncInfo(x *funcInfo, covered int64, total int64, trim bool) []string {
 	fn := getTrimmedFileName(x.fileName, trim)
+	tc := calculateCoverage(covered, total)
 	return []string{
 		fn,
 		x.functionName,
 		strconv.Itoa(x.functionStartLine),
 		strconv.Itoa(x.functionEndLine),
 		strconv.FormatInt(x.uncoveredLines, 10),
-		fmt.Sprintf("%.1f", (float64(covered+x.uncoveredLines)/float64(total)*100)-tc)}
+		fmt.Sprintf("%.1f", calculateCoverage(covered+x.uncoveredLines, total)-tc)}
 }
 
 func printBat(f []*funcInfo, trim bool, covered int64, total int64) {
 	var fStr [][]string
-	tc := float64(covered) / float64(total) * 100
+
 
 	for _, fInfo := range f {
-		fStr = append(fStr, fmtFuncInfo(fInfo, tc, total, covered, trim))
+		fStr = append(fStr, fmtFuncInfo(fInfo,covered, total, trim))
 	}
 
 	for _, v := range fStr {
@@ -133,16 +134,20 @@ func printBat(f []*funcInfo, trim bool, covered int64, total int64) {
 	}
 }
 
+func calculateCoverage(covered int64, total int64) float64 {
+	return float64(covered) / float64(total) * 100
+}
+
 func printTable(f []*funcInfo, trim bool, covered int64, total int64) {
 	var fStr [][]string
-	tc := float64(covered) / float64(total) * 100
+	tc := calculateCoverage(covered, total)
 	fStr = funk.Map(f, func(x *funcInfo) []string {
 		fn := getTrimmedFileName(x.fileName, trim)
 		return []string{
 			fn,
 			x.functionName,
 			strconv.FormatInt(x.uncoveredLines, 10),
-			fmt.Sprintf("%.1f", (float64(covered+x.uncoveredLines)/float64(total)*100)-tc)}
+			fmt.Sprintf("%.1f", calculateCoverage(covered+x.uncoveredLines, total) - tc)}
 	}).([][]string)
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"File", "Function", "Uncovered Lines", "Impact"})

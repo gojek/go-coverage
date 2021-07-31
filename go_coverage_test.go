@@ -51,7 +51,6 @@ func Test_getTrimmedFileName(t *testing.T) {
 func Test_fmtFuncInfo(t *testing.T) {
 	type args struct {
 		x       *funcInfo
-		tc      float64
 		covered int64
 		total int64
 		trim    bool
@@ -69,7 +68,6 @@ func Test_fmtFuncInfo(t *testing.T) {
 					functionStartLine: 10,
 					functionEndLine:   20,
 					uncoveredLines:    0},
-				tc:      100,
 				covered: 50,
 				total: 50,
 				trim:    false},
@@ -78,8 +76,30 @@ func Test_fmtFuncInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := fmtFuncInfo(tt.args.x, tt.args.tc, tt.args.covered, tt.args.total, tt.args.trim); !reflect.DeepEqual(got, tt.want) {
+			if got := fmtFuncInfo(tt.args.x, tt.args.covered, tt.args.total, tt.args.trim); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("fmtFuncInfo() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_calculateCoverage(t *testing.T) {
+	type args struct {
+		covered int64
+		total   int64
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		{"fully covered", args{100, 100}, 100.0},
+		{"partially covered", args{50, 100}, 50.0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := calculateCoverage(tt.args.covered, tt.args.total); got != tt.want {
+				t.Errorf("calculateCoverage() = %v, want %v", got, tt.want)
 			}
 		})
 	}
