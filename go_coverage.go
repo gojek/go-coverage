@@ -102,9 +102,7 @@ func main() {
 	}
 }
 
-func getTrimmedFileName(x *funcInfo, trim bool) string {
-	fn := x.fileName
-
+func getTrimmedFileName(fn string, trim bool) string {
 	if trim {
 		fn = trimString(fn, 20)
 	}
@@ -115,7 +113,7 @@ func printBat(f []*funcInfo, trim bool, covered int64, total int64) {
 	var fStr [][]string
 	tc := float64(covered) / float64(total) * 100
 	fStr = funk.Map(f, func(x *funcInfo) []string {
-		fn := getTrimmedFileName(x, trim)
+		fn := getTrimmedFileName(x.fileName, trim)
 		return []string{
 			fn,
 			x.functionName,
@@ -134,7 +132,7 @@ func printTable(f []*funcInfo, trim bool, covered int64, total int64) {
 	var fStr [][]string
 	tc := float64(covered) / float64(total) * 100
 	fStr = funk.Map(f, func(x *funcInfo) []string {
-		fn := getTrimmedFileName(x, trim)
+		fn := getTrimmedFileName(x.fileName, trim)
 		return []string{
 			fn,
 			x.functionName,
