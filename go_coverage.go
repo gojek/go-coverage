@@ -171,14 +171,16 @@ func getFunctionInfos(profiles []*cover.Profile) ([]*funcInfo, int64, int64, err
 		// Now match up functions and profile blocks.
 		for _, f := range funcs {
 			c, t := f.coverage(profile)
-			funcInfos = append(funcInfos,
-				&funcInfo{fileName: file,
-					functionName:      f.name,
-					functionStartLine: f.startLine,
-					functionEndLine:   f.endLine,
-					uncoveredLines:    t - c})
-			total += t
-			covered += c
+			if t != 0 {
+				funcInfos = append(funcInfos,
+					&funcInfo{fileName: file,
+						functionName:      f.name,
+						functionStartLine: f.startLine,
+						functionEndLine:   f.endLine,
+						uncoveredLines:    t - c})
+				total += t
+				covered += c
+			}
 		}
 	}
 	return funcInfos, total, covered, nil
@@ -270,9 +272,7 @@ func (f *FuncExtent) coverage(profile *cover.Profile) (num, den int64) {
 			covered += int64(b.NumStmt)
 		}
 	}
-	if total == 0 {
-		total = 1 // Avoid zero denominator.
-	}
+
 	return covered, total
 }
 
